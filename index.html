@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxy Shop</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg: var(--tg-theme-bg-color, #fff);
+            --text: var(--tg-theme-text-color, #000);
+            --btn: var(--tg-theme-button-color, #3390ec);
+            --btn-text: var(--tg-theme-button-text-color, #fff);
+        }
+        body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; margin: 0; padding: 16px; }
+        .card { background: rgba(127,127,127,0.1); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        h2 { margin: 0 0 10px; font-size: 18px; }
+        .btn { display: block; width: 100%; padding: 12px; margin: 6px 0; background: var(--btn); color: var(--btn-text); border: none; border-radius: 8px; font-size: 15px; cursor: pointer; }
+        .btn:active { opacity: 0.8; }
+        #status { text-align: center; margin-top: 10px; font-size: 13px; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🛒 Выберите тариф</h2>
+        <button class="btn" onclick="buy('buy_1day')">⚡ 1 день — 5₽</button>
+        <button class="btn" onclick="buy('buy_7days')">🔥 7 дней — 20₽</button>
+        <button class="btn" onclick="buy('buy_30days')">💎 30 дней — 50₽</button>
+    </div>
+    <button class="btn" style="background:#666;" onclick="Telegram.WebApp.close()">↩️ Закрыть</button>
+    <p id="status"></p>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Раскрываем на весь экран
+        tg.ready();  // Сообщаем Telegram, что приложение готово
+
+        function buy(tariff) {
+            document.getElementById('status').innerText = '⏳ Обработка...';
+            // Отправляем данные боту. Бот получит их как обычное сообщение
+            tg.sendData(tariff);
+        }
+    </script>
+</body>
+</html>
