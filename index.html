@@ -2,122 +2,63 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proxy Shop</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --bg: var(--tg-theme-bg-color, #fff);
-            --text: var(--tg-theme-text-color, #000);
-            --btn: var(--tg-theme-button-color, #3390ec);
-            --btn-text: var(--tg-theme-button-text-color, #fff);
-            --card: rgba(127,127,127,0.12);
+        body { 
+            background: var(--tg-theme-bg-color, #fff); 
+            color: var(--tg-theme-text-color, #000); 
+            font-family: sans-serif; 
+            margin: 0; 
+            padding: 16px; 
         }
-        body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 16px; }
-        .view { display: none; }
-        .view.active { display: block; animation: fadeIn 0.2s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
-        h2 { margin: 0 0 12px; font-size: 18px; font-weight: 600; }
-        .btn { display: block; width: 100%; padding: 12px; margin: 6px 0; background: var(--btn); color: var(--btn-text); border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
-        .btn.secondary { background: rgba(127,127,127,0.2); color: var(--text); }
-        #status { text-align: center; margin-top: 10px; font-size: 13px; color: #888; min-height: 20px; word-break: break-word; }
-        #debug { margin-top: 20px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 11px; color: #666; display: none; }
+        .btn { 
+            display: block; 
+            width: 100%; 
+            padding: 14px; 
+            margin: 8px 0; 
+            background: var(--tg-theme-button-color, #3390ec); 
+            color: var(--tg-theme-button-text-color, #fff); 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 16px; 
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .btn:active { opacity: 0.85; }
+        .btn.secondary { background: #888; }
+        #status { text-align: center; margin-top: 15px; color: #666; font-size: 14px; }
     </style>
 </head>
 <body>
-    <!-- 🏠 ГЛАВНОЕ МЕНЮ -->
-    <div id="view-menu" class="view active">
-        <h2>👋 Добро пожаловать</h2>
-        <div class="card">
-            <button class="btn" onclick="nav('buy')">🛒 Купить прокси</button>
-            <button class="btn" onclick="cmd('check_balance')">💰 Проверить баланс</button>
-            <button class="btn" onclick="cmd('show_tariffs')">📊 Тарифы</button>
-            <button class="btn" onclick="cmd('show_help')">❓ Как подключить</button>
-            <button class="btn" onclick="cmd('show_support')">💬 Поддержка</button>
-        </div>
-    </div>
+    <h2 style="margin-bottom:20px;">👋 Proxy Shop</h2>
 
-    <!-- 🛒 МЕНЮ ПОКУПКИ -->
-    <div id="view-buy" class="view">
-        <h2>💳 Выберите тариф</h2>
-        <div class="card">
-            <button class="btn" onclick="buy('buy_1day')">⚡ 1 день — 5₽</button>
-            <button class="btn" onclick="buy('buy_7days')">🔥 7 дней — 20₽</button>
-            <button class="btn" onclick="buy('buy_30days')">💎 30 дней — 50₽</button>
-        </div>
-        <button class="btn secondary" onclick="nav('menu')">↩️ Назад</button>
-    </div>
+    <!-- КНОПКИ ГЛАВНОГО МЕНЮ -->
+    <button class="btn" onclick="send('buy_proxy')">🛒 Купить прокси</button>
+    <button class="btn" onclick="send('check_balance')">💰 Баланс</button>
+    <button class="btn" onclick="send('show_tariffs')">📊 Тарифы</button>
+    <button class="btn" onclick="send('show_help')">❓ Помощь</button>
+    <button class="btn" onclick="send('show_support')">💬 Поддержка</button>
 
     <p id="status"></p>
-    <div id="debug"></div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        const statusEl = document.getElementById('status');
-        const debugEl = document.getElementById('debug');
-        
-        // Показываем отладку только в режиме разработки
-        // debugEl.style.display = 'block';
-
-        function log(msg) {
-            console.log('[MiniApp]', msg);
-            if (debugEl.style.display === 'block') {
-                debugEl.innerHTML += `<br>📝 ${msg}`;
-            }
-        }
-
-        // 1. Инициализация
+        // Инициализация Telegram WebApp
+        const tg = Telegram.WebApp;
         tg.ready();
         tg.expand();
-        log(`✅ Init. initData: ${tg.initData ? 'OK' : 'MISSING'}`);
-        log(`✅ User: ${tg.initDataUnsafe?.user?.id || 'unknown'}`);
 
-        // Переключение экранов
-        function nav(screen) {
-            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-            document.getElementById('view-' + screen).classList.add('active');
-            log(`🔀 Nav: ${screen}`);
-        }
-
-        // Отправка команды боту (баланс, тарифы, помощь, поддержка)
-        function cmd(action) {
-            statusEl.innerText = '⏳ Отправка...';
-            log(`📤 cmd: ${action}`);
+        // Универсальная функция отправки
+        function send(command) {
+            const status = document.getElementById('status');
+            status.innerText = '⏳ Отправка...';
             
-            try {
-                tg.sendData(action);
-                setTimeout(() => {
-                    if (!tg.isClosed) {
-                        statusEl.innerText = '⚠️ Нет ответа. Пробую закрыть...';
-                        tg.close();
-                    }
-                }, 2000);
-            } catch (e) {
-                statusEl.innerText = '❌ Ошибка: ' + e.message;
-                log(`❌ sendData error: ${e}`);
-            }
-        }
-
-        // Покупка
-        function buy(tariff) {
-            statusEl.innerText = '⏳ Отправка...';
-            log(`📤 buy: ${tariff}`);
+            // Отправляем данные боту
+            tg.sendData(command);
             
-            try {
-                tg.sendData(tariff);
-                // Фоллбэк: если Telegram не закрыл окно сам за 1.5 сек
-                setTimeout(() => {
-                    if (!tg.isClosed) {
-                        log('⚠️ Window not closed, forcing close');
-                        tg.close();
-                    }
-                }, 1500);
-            } catch (e) {
-                statusEl.innerText = '❌ Ошибка: ' + e.message;
-                log(`❌ sendData error: ${e}`);
-            }
+            // Если окно не закрылось за 1.5 сек — закрываем принудительно
+            setTimeout(() => { if (!tg.isClosed) tg.close(); }, 1500);
         }
     </script>
 </body>
